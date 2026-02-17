@@ -15,7 +15,6 @@ class UserController extends Controller
     public function register(Request $request)
     {
         try {
-
             $request->validate([
                 'name' => ['required', 'string', 'max:255'],
                 'username' => ['required', 'string', 'max:255', 'unique:users'],
@@ -81,5 +80,41 @@ class UserController extends Controller
                 'error' => $error,
             ], 'auth faild', 500);
         }
+    }
+
+    public function fetchUser(Request $request)
+    {
+        return ResponseFormatter::success(
+            $request->user(),
+            'data profil user berhasil diambil'
+        );
+    }
+
+    public function UpdateUser(Request $request)
+    {
+        try {
+            $request->validate([
+                'name' => ['required', 'string', 'max:255'],
+                'username' => ['required', 'string', 'max:255', 'unique:users'],
+                'email' => ['required', 'email', 'max:255', 'unique:users'],
+                'phone' => ['nullable', 'string', 'max:255'],
+                'password' => ['required', 'string', new Password]
+            ]);
+            $data = $request->all();
+            $user = Auth::user();
+            $user->update($data);
+            return ResponseFormatter::success($user, 'Profile telah diupdate cihutyyyy');
+        } catch (Exception $error) {
+            return ResponseFormatter::error([
+                'message' => 'gagal',
+                'error' => $error,
+            ]);
+        }
+    }
+
+    public function logout(Request $request)
+    {
+        $token = $request->user()->currentAccessToken()->delete();
+        return ResponseFormatter::success('alhamdulilah logout');
     }
 }
