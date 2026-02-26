@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Helpers\ResponseFormatter;
 use App\Http\Controllers\Controller;
 use App\Models\Transaction;
 use App\Models\Transaction_items;
@@ -19,7 +20,7 @@ class transactionController extends Controller
             $status = $request->input('status');
 
             if ($id) {
-                $transaction = Transaction::with(['items.product'])->find($id);
+                $transaction = Transaction::with(['items.products'])->find($id);
                 if ($transaction) {
                     return ResponseFormatter::success($transaction, 'transaction berhasil diambil');
                 } else {
@@ -31,7 +32,7 @@ class transactionController extends Controller
                 }
             }
 
-            $transaction = Transaction::with(['items.product'])->where('user_id', Auth::user()->id);
+            $transaction = Transaction::with(['items.products'])->where('user_id', Auth::user()->id);
 
             if ($status) {
                 $transaction->where('status', $status);
@@ -53,7 +54,7 @@ class transactionController extends Controller
     {
         $request->validate([
             'items' => 'required|array',
-            'items.*.id' => 'exists:products.id',
+            'items.*.id' => 'exists:product.id',
             'total_price' => 'required',
             'shipping_price' => 'required',
             'status' => 'required|in:PENDING, SHIPPING, SUCCESS, CANCELED, FAILED, SHIPPED'

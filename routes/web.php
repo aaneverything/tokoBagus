@@ -1,16 +1,23 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
-use Laravel\Fortify\Features;
-use App\Http\Controllers\anjayController;
+use App\Http\Controllers\API\ProductCategory;
+use App\Http\Controllers\API\ProductController;
+use App\Http\Controllers\API\transactionController;
+use App\Http\Controllers\API\UserController;
+use App\Models\User;
 
-Route::get('/', function () {
-    return "bajingan cok";
-});
-Route::get('/dashboard', function () {
-    return view('app');
-});
+Route::get('product', [ProductController::class, 'all']);
+route::get('categories', [ProductCategory::class, 'all']);
 
-Route::get('/babi',[anjayController::class,'index']);
-Route::get('/kento',[anjayController::class,'cobaaja']);
+Route::post('register', [UserController::class, 'register']);
+Route::post('login', [UserController::class, 'login']);
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('checkout', [UserController::class, 'fetch']);
+    Route::post('transactions', [UserController::class, 'updateProfile']);
+    Route::post('logout', [UserController::class, 'logout']);
+
+    Route::get('transactions', [UserController::class, 'all']);
+    Route::post('checkout', [transactionController::class, 'checkout']);
+});

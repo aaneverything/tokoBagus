@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Helpers\ResponseFormatter;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\Product_Category;
@@ -15,7 +16,6 @@ class ProductCategory extends Controller
         $limit = $request->input('limit');
         $name = $request->input('name');
         $show_product = $request->input('show_product');
-
 
         if ($id) {
             $product = Product_Category::with(['category'])->find($id);
