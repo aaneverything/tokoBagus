@@ -16,7 +16,7 @@ class Product_gallery extends Model
         'products_id'
     ];
 
-    public function geturlAtribute($url){
+    public function getUrlAttribute($url){
         return config('app.url'). Storage::url($url);
     }
 }

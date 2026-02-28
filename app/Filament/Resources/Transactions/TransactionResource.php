@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Filament\Resources\Products;
+namespace App\Filament\Resources\Transactions;
 
-use App\Filament\Resources\Products\Pages\CreateProduct;
-use App\Filament\Resources\Products\Pages\EditProduct;
-use App\Filament\Resources\Products\Pages\ListProducts;
-use App\Filament\Resources\Products\Schemas\ProductForm;
-use App\Filament\Resources\Products\Tables\ProductsTable;
-use App\Models\Product;
+use App\Filament\Resources\Transactions\Pages\CreateTransaction;
+use App\Filament\Resources\Transactions\Pages\EditTransaction;
+use App\Filament\Resources\Transactions\Pages\ListTransactions;
+use App\Filament\Resources\Transactions\Schemas\TransactionForm;
+use App\Filament\Resources\Transactions\Tables\TransactionsTable;
+use App\Models\Transaction;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -16,26 +16,22 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class ProductResource extends Resource
+class TransactionResource extends Resource
 {
-    protected static ?string $model = Product::class;
+    protected static ?string $model = Transaction::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
-    protected static ?string $recordTitleAttribute = 'name';
-
-    protected static string|\UnitEnum|null $navigationGroup = 'Products';
-
-    protected static ?int $navigationSort = 1;
+    protected static ?string $recordTitleAttribute = 'users_id';
 
     public static function form(Schema $schema): Schema
     {
-        return ProductForm::configure($schema);
+        return TransactionForm::configure($schema);
     }
 
     public static function table(Table $table): Table
     {
-        return ProductsTable::configure($table);
+        return TransactionsTable::configure($table);
     }
 
     public static function getRelations(): array
@@ -48,9 +44,9 @@ class ProductResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => ListProducts::route('/'),
-            'create' => CreateProduct::route('/create'),
-            'edit' => EditProduct::route('/{record}/edit'),
+            'index' => ListTransactions::route('/'),
+            'create' => CreateTransaction::route('/create'),
+            'edit' => EditTransaction::route('/{record}/edit'),
         ];
     }
 

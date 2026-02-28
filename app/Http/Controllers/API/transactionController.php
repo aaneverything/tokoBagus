@@ -20,19 +20,19 @@ class transactionController extends Controller
             $status = $request->input('status');
 
             if ($id) {
-                $transaction = Transaction::with(['items.products'])->find($id);
+                $transaction = Transaction::with(['items.product'])->find($id);
                 if ($transaction) {
-                    return ResponseFormatter::success($transaction, 'transaction berhasil diambil');
+                    return ResponseFormatter::success($transaction, 'Data transaksi berhasil diambil');
                 } else {
                     return ResponseFormatter::error(
                         null,
-                        'datanya gaada njirr',
+                        'Data transaksi tidak ditemukan',
                         404
                     );
                 }
             }
 
-            $transaction = Transaction::with(['items.products'])->where('user_id', Auth::user()->id);
+            $transaction = Transaction::with(['items.product'])->where('users_id', Auth::id());
 
             if ($status) {
                 $transaction->where('status', $status);
@@ -43,9 +43,9 @@ class transactionController extends Controller
             );
         } catch (Exception $error) {
             return ResponseFormatter::error(
-                $error,
-                'ada yang salah nich',
-                404
+                null,
+                'Terjadi kesalahan pada server',
+                500
             );
         }
     }
@@ -54,10 +54,10 @@ class transactionController extends Controller
     {
         $request->validate([
             'items' => 'required|array',
-            'items.*.id' => 'exists:product.id',
-            'total_price' => 'required',
-            'shipping_price' => 'required',
-            'status' => 'required|in:PENDING, SHIPPING, SUCCESS, CANCELED, FAILED, SHIPPED'
+            'items.*.id' => 'exists:products,id',
+            'total_price' => 'required|numeric',
+            'shipping_price' => 'required|numeric',
+            'status' => 'required|in:pending,shipping,success,canceled,failed,shipped'
         ]);
 
         $transaction = Transaction::create([
@@ -65,7 +65,7 @@ class transactionController extends Controller
             'address' => $request->address,
             'total_price' => $request->total_price,
             'shipping_price' => $request->shipping_price,
-            'status' => $request->status,
+            'status' => strtolower($request->status),
         ]);
 
         foreach ($request->items as $product) {
@@ -77,6 +77,6 @@ class transactionController extends Controller
             ]);
         }
 
-        return ResponseFormatter::success($transaction->load('items.product'), 'Transaksi berhasil anjay');
+        return ResponseFormatter::success($transaction->load('items.product'), 'Checkout berhasil');
     }
 }

@@ -14,10 +14,10 @@ return new class extends Migration
         Schema::create('products', function (Blueprint $table) {
             $table->id();
             $table->string('name')->nullable(false);
-            $table->float('price')->nullable(false);
+            $table->decimal('price', 12, 2)->nullable(false);
             $table->string('description')->nullable();
             $table->string('tags')->nullable();
-            $table->bigInteger('categories_id')->nullable();
+            $table->foreignId('categories_id')->nullable()->constrained('product_categories')->nullOnDelete();
             $table->timestamps();
             $table->softDeletes();
         });

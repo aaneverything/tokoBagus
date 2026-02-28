@@ -10,11 +10,11 @@ return new class extends Migration
     {
         Schema::create('product_transaction', function (Blueprint $table) {
             $table->id();
-            $table->bigInteger('users_id');
+            $table->foreignId('users_id')->constrained('users')->cascadeOnDelete();
             $table->text('address')->nullable();
             $table->string('payment')->default('manual');
-            $table->float('total_price');
-            $table->float('shipping_price');
+            $table->decimal('total_price', 12, 2)->default(0);
+            $table->decimal('shipping_price', 12, 2)->default(0);
             $table->string('status')->default('pending');
             $table->softDeletes();
             $table->timestamps();

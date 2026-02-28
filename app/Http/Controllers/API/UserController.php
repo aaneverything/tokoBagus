@@ -2,13 +2,15 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Helpers\ResponseFormatter;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Password;
+use Illuminate\Validation\Rules\Password;
+use Illuminate\Validation\ValidationException;
 
 class UserController extends Controller
 {
@@ -20,7 +22,7 @@ class UserController extends Controller
                 'username' => ['required', 'string', 'max:255', 'unique:users'],
                 'email' => ['required', 'email', 'max:255', 'unique:users'],
                 'phone' => ['nullable', 'string', 'max:255'],
-                'password' => ['required', 'string', new Password]
+                'password' => ['required', 'string', Password::min(8)]
             ]);
 
             User::create([
@@ -38,12 +40,19 @@ class UserController extends Controller
                 'access_token' => $token_result,
                 'token_type' => 'Bearer',
                 'user' => $user,
-            ], 'berhasil daftar ihirr');
-        } catch (Exception $error) {
-            return ResponseFormatter::error([
-                'message' => 'salah anjeng',
-                'error' => $error,
-            ], 'auth gagal wle wle');
+            ], 'Registrasi berhasil');
+        } catch (ValidationException $e) {
+            return ResponseFormatter::error(
+                $e->errors(),
+                'Validation error',
+                422
+            );
+        } catch (\Throwable $e) {
+            return ResponseFormatter::error(
+                null,
+                'Server error',
+                500
+            );
         }
     }
 
@@ -57,15 +66,11 @@ class UserController extends Controller
 
             if (!Auth::attempt(request(['email', 'password']))) {
                 return ResponseFormatter::error([
-                    'message' => 'unauthorize',
-                ], 'Auth failed', 500);
+                    'message' => 'Unauthorized',
+                ], 'Login gagal, email atau password salah', 401);
             }
 
             $user = User::where('email', $request->email)->first();
-
-            if (!Hash::check($request->password, $user->password, [])) {
-                throw new \Exception('Invalid Credentials');
-            }
 
             $tokenResult = $user->createToken('authToken')->plainTextToken;
 
@@ -74,11 +79,18 @@ class UserController extends Controller
                 'token_type' => 'Bearer',
                 'user' => $user,
             ], 'Authenticated');
-        } catch (Exception $error) {
-            return ResponseFormatter::error([
-                'message' => 'Unauthorize',
-                'error' => $error,
-            ], 'auth faild', 500);
+        } catch (ValidationException $e) {
+            return ResponseFormatter::error(
+                $e->errors(),
+                'Validation error',
+                422
+            );
+        } catch (\Throwable $e) {
+            return ResponseFormatter::error(
+                null,
+                'Server error',
+                500
+            );
         }
     }
 
@@ -95,26 +107,29 @@ class UserController extends Controller
         try {
             $request->validate([
                 'name' => ['required', 'string', 'max:255'],
-                'username' => ['required', 'string', 'max:255', 'unique:users'],
-                'email' => ['required', 'email', 'max:255', 'unique:users'],
+                'username' => ['required', 'string', 'max:255', 'unique:users,username,' . Auth::id()],
+                'email' => ['required', 'email', 'max:255', 'unique:users,email,' . Auth::id()],
                 'phone' => ['nullable', 'string', 'max:255'],
-                'password' => ['required', 'string', new Password]
             ]);
-            $data = $request->all();
+            $data = $request->only(['name', 'username', 'email', 'phone']);
             $user = Auth::user();
             $user->update($data);
-            return ResponseFormatter::success($user, 'Profile telah diupdate cihutyyyy');
+            return ResponseFormatter::success($user, 'Profile berhasil diupdate');
         } catch (Exception $error) {
-            return ResponseFormatter::error([
-                'message' => 'gagal',
-                'error' => $error,
-            ]);
+            return ResponseFormatter::error(
+                null,
+                'Gagal mengupdate profile',
+                500
+            );
         }
     }
 
     public function logout(Request $request)
     {
-        $token = $request->user()->currentAccessToken()->delete();
-        return ResponseFormatter::success('alhamdulilah logout');
+        $token = $request->user()->currentAccessToken();
+        if ($token) {
+            $token->delete();
+        }
+        return ResponseFormatter::success(null, 'Logout berhasil');
     }
 }

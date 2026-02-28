@@ -13,21 +13,21 @@ class ProductCategory extends Controller
     public function all(Request $request)
     {
         $id = $request->input('id');
-        $limit = $request->input('limit');
+        $limit = $request->input('limit', 10);
         $name = $request->input('name');
         $show_product = $request->input('show_product');
 
         if ($id) {
-            $product = Product_Category::with(['category'])->find($id);
-            if ($product) {
+            $category = Product_Category::with(['products'])->find($id);
+            if ($category) {
                 return ResponseFormatter::success(
-                    $product,
-                    'data produk berhasil di jikuk'
+                    $category,
+                    'Data kategori berhasil diambil'
                 );
             } else {
                 return ResponseFormatter::error(
                     null,
-                    'gaada njir error',
+                    'Data kategori tidak ditemukan',
                     404
                 );
             };
@@ -36,16 +36,16 @@ class ProductCategory extends Controller
         $category = Product_Category::query();
 
         if ($name) {
-            $category->where('name', 'like', '%', $name, '%');
+            $category->where('name', 'like', "%{$name}%");
         }
 
         if ($show_product) {
-            $category->with('product');
+            $category->with('products');
         }
 
         return ResponseFormatter::success(
             $category->paginate($limit),
-            'data kategori berhasil di jikuk'
+            'Data kategori berhasil diambil'
         );
     }
 }

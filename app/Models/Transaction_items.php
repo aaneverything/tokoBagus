@@ -17,14 +17,16 @@ class Transaction_items extends Model
         'transactions_id'
     ];
 
-    public function users(){
-        return $this->belongsTo(User::class, 'users_id','id');
+    public function users()
+    {
+        return $this->belongsTo(User::class, 'users_id', 'id');
     }
-    public function products(){
-        return $this->hasMany(Product::class,'products_id', 'name');
+    public function product()
+    {
+        return $this->belongsTo(Product::class, 'products_id', 'id');
     }
-    public function transaction(){
-        return $this->belongsTo(transaction::class, 'transaction_id','id');
+    public function transaction()
+    {
+        return $this->belongsTo(Transaction::class, 'transactions_id', 'id');
     }
-
 }

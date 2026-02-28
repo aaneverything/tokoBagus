@@ -13,11 +13,11 @@ class ProductController extends Controller
     public function all(Request $request)
     {
         $id = $request->input('id');
-        $limit = $request->input('limit');
+        $limit = $request->input('limit', 10);
         $name = $request->input('name');
         $description = $request->input('description');
         $tags = $request->input('tags');
-        $categories = $request->input('icategories');
+        $categories = $request->input('categories');
         $price_from = $request->input('price_from');
         $price_to = $request->input('price_to');
 
@@ -27,45 +27,45 @@ class ProductController extends Controller
             if ($product) {
                 return ResponseFormatter::success(
                     $product,
-                    'data produk berhasil di jikuk'
+                    'Data produk berhasil diambil'
                 );
             } else {
                 return ResponseFormatter::error(
                     null,
-                    'gaada njir error',
+                    'Data produk tidak ditemukan',
                     404
                 );
             };
         }
 
-        $product = Product::with(['category', 'galleries']);
+        $query = Product::with(['category', 'galleries']);
 
         if ($name) {
-            $product->where('name', 'like', '%', $name, '%');
+            $query->where('name', 'like', "%{$name}%");
         }
 
         if ($description) {
-            $product->where('description', 'like', '%', $description, '%');
+            $query->where('description', 'like', "%{$description}%");
         }
 
         if ($tags) {
-            $product->where('tags', 'like', '%', $tags, '%');
+            $query->where('tags', 'like', "%{$tags}%");
         }
 
         if ($price_from) {
-            $product->where('tags', '>=', $price_from);
+            $query->where('price', '>=', $price_from);
         }
 
         if ($price_to) {
-            $product->where('tags', '<=', $price_to);
+            $query->where('price', '<=', $price_to);
         }
 
         if ($categories) {
-            $product->where('categories', 'like', '%', $categories, '%');
+            $query->where('categories_id', $categories);
         }
         return ResponseFormatter::success(
-            $product->paginate($limit),
-            'data produk berhasil di jikuk'
+            $query->paginate($limit),
+            'Data produk berhasil diambil'
         );
     }
 }

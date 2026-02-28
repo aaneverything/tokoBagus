@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Resources\Products\Tables;
+namespace App\Filament\Resources\Transactions\Tables;
 
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -11,34 +11,40 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 
-class ProductsTable
+class TransactionsTable
 {
     public static function configure(Table $table): Table
     {
         return $table
             ->columns([
-                TextColumn::make('name')
-                    ->searchable(),
-                TextColumn::make('price')
+                TextColumn::make('users.name')
+                    ->label('User')
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('address')
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('payment')
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('status')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'pending' => 'warning',
+                        'shipping', 'shipped' => 'info',
+                        'success' => 'success',
+                        'canceled', 'failed' => 'danger',
+                        default => 'gray',
+                    })
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('shipping_price')
                     ->money('IDR')
                     ->sortable(),
-                TextColumn::make('description')
-                    ->searchable()
-                    ->limit(50),
-                TextColumn::make('tags')
-                    ->searchable(),
-                TextColumn::make('category.name')
-                    ->label('Category')
+                TextColumn::make('total_price')
+                    ->money('IDR')
                     ->sortable(),
                 TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('deleted_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -58,3 +64,4 @@ class ProductsTable
             ]);
     }
 }
+
