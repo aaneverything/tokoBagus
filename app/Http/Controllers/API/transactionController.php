@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Helpers\ResponseFormatter;
 use App\Http\Controllers\Controller;
+use App\Models\Cart;
 use App\Models\Transaction;
 use App\Models\Transaction_items;
 use Exception;
@@ -52,6 +53,49 @@ class transactionController extends Controller
 
     public function checkout(Request $request)
     {
+        $fromCart = $request->input('from_cart', false);
+
+        if ($fromCart) {
+            // Checkout dari cart
+            $cartItems = Cart::where('users_id', Auth::id())->get();
+
+            if ($cartItems->isEmpty()) {
+                return ResponseFormatter::error(null, 'Cart kosong', 400);
+            }
+
+            $request->validate([
+                'total_price' => 'required|numeric',
+                'shipping_price' => 'required|numeric',
+                'status' => 'required|in:pending,shipping,success,canceled,failed,shipped',
+            ]);
+
+            $transaction = Transaction::create([
+                'users_id' => Auth::id(),
+                'address' => $request->address,
+                'total_price' => $request->total_price,
+                'shipping_price' => $request->shipping_price,
+                'status' => strtolower($request->status),
+            ]);
+
+            foreach ($cartItems as $cartItem) {
+                Transaction_items::create([
+                    'users_id' => Auth::id(),
+                    'products_id' => $cartItem->products_id,
+                    'transactions_id' => $transaction->id,
+                    'quantity' => $cartItem->quantity,
+                ]);
+            }
+
+            // Kosongkan cart setelah checkout
+            Cart::where('users_id', Auth::id())->delete();
+
+            return ResponseFormatter::success(
+                $transaction->load('items.product'),
+                'Checkout dari cart berhasil'
+            );
+        }
+
+        // Checkout langsung (tanpa cart)
         $request->validate([
             'items' => 'required|array',
             'items.*.id' => 'exists:products,id',
@@ -80,3 +124,4 @@ class transactionController extends Controller
         return ResponseFormatter::success($transaction->load('items.product'), 'Checkout berhasil');
     }
 }
+

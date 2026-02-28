@@ -249,6 +249,152 @@ Daftar semua kategori.
 
 ---
 
+### 🔒 `GET /cart`
+
+Lihat semua item di cart user yang login.
+
+**Response (200):**
+
+```json
+{
+    "meta": {
+        "code": 200,
+        "status": "success",
+        "message": "Data cart berhasil diambil"
+    },
+    "data": [
+        {
+            "id": 1,
+            "users_id": 1,
+            "products_id": 1,
+            "quantity": 2,
+            "product": {
+                "id": 1,
+                "name": "Produk A",
+                "price": 150000,
+                "category": { "id": 1, "name": "Elektronik" },
+                "galleries": [{ "id": 1, "url": "path/to/image.jpg" }]
+            }
+        }
+    ]
+}
+```
+
+---
+
+### 🔒 `POST /cart/add`
+
+Tambah produk ke cart. Jika produk sudah ada di cart, quantity ditambah.
+
+**Request Body:**
+
+```json
+{
+    "products_id": 1,
+    "quantity": 2
+}
+```
+
+| Field         | Type | Required | Rule                        |
+| ------------- | ---- | -------- | --------------------------- |
+| `products_id` | int  | ✅       | Harus ada di tabel products |
+| `quantity`    | int  | ❌       | min:1, default: 1           |
+
+**Response (200):**
+
+```json
+{
+    "meta": {
+        "code": 200,
+        "status": "success",
+        "message": "Produk berhasil ditambahkan ke cart"
+    },
+    "data": {
+        "id": 1,
+        "users_id": 1,
+        "products_id": 1,
+        "quantity": 2,
+        "product": { "id": 1, "name": "Produk A", "price": 150000 }
+    }
+}
+```
+
+---
+
+### 🔒 `PUT /cart/{id}`
+
+Update quantity item di cart.
+
+**Request Body:**
+
+```json
+{
+    "quantity": 3
+}
+```
+
+| Field      | Type | Required | Rule  |
+| ---------- | ---- | -------- | ----- |
+| `quantity` | int  | ✅       | min:1 |
+
+**Response (200):**
+
+```json
+{
+    "meta": {
+        "code": 200,
+        "status": "success",
+        "message": "Cart berhasil diupdate"
+    },
+    "data": {
+        "id": 1,
+        "products_id": 1,
+        "quantity": 3,
+        "product": { "...": "..." }
+    }
+}
+```
+
+---
+
+### 🔒 `DELETE /cart/{id}`
+
+Hapus satu item dari cart.
+
+**Response (200):**
+
+```json
+{
+    "meta": {
+        "code": 200,
+        "status": "success",
+        "message": "Item berhasil dihapus dari cart"
+    },
+    "data": null
+}
+```
+
+---
+
+### 🔒 `POST /cart/clear`
+
+Kosongkan semua item di cart.
+
+**Response (200):**
+
+```json
+{
+    "meta": {
+        "code": 200,
+        "status": "success",
+        "message": "Cart berhasil dikosongkan"
+    },
+    "data": null
+}
+```
+
+---
+
 ### 🔒 `GET /transactions`
 
 Daftar transaksi user yang login.
@@ -303,9 +449,23 @@ Daftar transaksi user yang login.
 
 ### 🔒 `POST /checkout`
 
-Buat transaksi baru.
+Buat transaksi baru. Mendukung 2 mode:
 
-**Request Body:**
+#### Mode 1: Checkout dari Cart
+
+```json
+{
+    "from_cart": true,
+    "address": "Jl. Contoh No. 123",
+    "total_price": 450000,
+    "shipping_price": 15000,
+    "status": "pending"
+}
+```
+
+> Cart otomatis dikosongkan setelah checkout berhasil.
+
+#### Mode 2: Checkout Langsung (tanpa cart)
 
 ```json
 {
@@ -320,14 +480,14 @@ Buat transaksi baru.
 }
 ```
 
-| Field              | Type    | Required | Rule                                                              |
-| ------------------ | ------- | -------- | ----------------------------------------------------------------- |
-| `items`            | array   | ✅       | Array of objects                                                  |
-| `items.*.id`       | int     | ✅       | Harus ada di tabel products                                       |
-| `items.*.quantity` | int     | ✅       | Jumlah item                                                       |
-| `total_price`      | numeric | ✅       |                                                                   |
-| `shipping_price`   | numeric | ✅       |                                                                   |
-| `status`           | string  | ✅       | `pending`, `shipping`, `success`, `canceled`, `failed`, `shipped` |
+| Field            | Type    | Required             | Rule                                                              |
+| ---------------- | ------- | -------------------- | ----------------------------------------------------------------- |
+| `from_cart`      | bool    | ❌                   | Jika true, checkout dari cart                                     |
+| `items`          | array   | ✅ (jika tanpa cart) | Array of `{ id, quantity }`                                       |
+| `items.*.id`     | int     | ✅                   | Harus ada di tabel products                                       |
+| `total_price`    | numeric | ✅                   |                                                                   |
+| `shipping_price` | numeric | ✅                   |                                                                   |
+| `status`         | string  | ✅                   | `pending`, `shipping`, `success`, `canceled`, `failed`, `shipped` |
 
 **Response (200):**
 
